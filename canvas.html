@@ -10,8 +10,8 @@
 
   var canvas = document.createElement("canvas");
   var ctx = canvas.getContext("2d");
-  canvas.width = 512;
-  canvas.height = 480;
+  canvas.width = 500;
+  canvas.height = 500;
   document.body.appendChild(canvas);
 
 
@@ -36,7 +36,7 @@
   };
 
   var keysDown = {};
-  addEventListener("keypress", function(e){
+  addEventListener("keydown", function(e){
     keysDown[e.keyCode] = true;
   }, false);
 
@@ -64,6 +64,9 @@
     if(39 in keysDown){
       hero.x += hero.speed * modifier;
     }
+    if(32 in keysDown){
+      reset();
+    }
   };
 
   var render = function() {
@@ -71,6 +74,18 @@
       ctx.drawImage(bgImage,0,0);
     }
     if(heroReady){
+      if(hero.x > 400){
+        hero.x = 0;
+      }
+      if(hero.x < 0){
+        hero.x = 400;
+      }
+      if(hero.y > 400){
+        hero.y = 0;
+      }
+      if(hero.y < 0){
+        hero.y = 400;
+      }
       ctx.drawImage(heroImage, hero.x, hero.y);
     }
   };
