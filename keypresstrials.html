@@ -1,0 +1,206 @@
+<!doctype html>
+
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+
+  <title></title>
+</head>
+
+<body>
+<canvas id="myCanvas" height="500" width="500"></canvas>
+
+
+
+</body>
+<script type="text/javascript">
+
+	// var hero = {
+	// 	x: 0,
+	//     y: 0
+	// };
+
+
+
+	// var main = function(){
+	//     // drawGame();
+	//     requestAnimationFrame(main);
+	// };
+  	
+ //  	main();
+
+  
+
+
+</script>
+
+<script>
+	var canvas = document.getElementById('myCanvas');
+	var ctx = canvas.getContext('2d');
+
+	var heroReady = false;
+	var heroImage = new Image();
+	heroImage.onload = function(){
+		heroReady = true;
+	};
+	heroImage.src = "./images/dog.png";
+
+	var grassReady = false;
+	var grassImage = new Image();
+	grassImage.onload = function(){
+		grassReady = true;
+	};
+	grassImage.src = "./images/grass.gif";
+
+	var treeReady = false;
+	var treeImage = new Image();
+	treeImage.onload = function(){
+		treeReady = true;
+	};
+	treeImage.src = "./images/tree.png";
+
+	var chestReady = false;
+	var chestImage = new Image();
+	chestImage.onload = function(){
+		chestReady = true;
+	};
+	chestImage.src = "./images/chest.png";
+
+	var gameMap = new Array(10);
+ 	
+  	var demoMap = [
+  		[1,1,1,1,1,1,1,1,1,1],
+  		[1,0,0,0,0,0,0,0,0,1],
+  		[1,0,0,0,0,0,0,0,0,1],
+  		[1,1,0,0,0,0,0,0,0,1],
+  		[1,1,0,0,0,2,0,0,0,1],
+  		[1,0,0,0,0,0,0,0,0,1],
+  		[1,0,1,1,0,0,0,0,0,1],
+  		[1,0,1,1,0,0,0,0,0,1],
+  		[1,3,1,1,0,0,0,0,3,1],
+  		[1,1,1,1,1,1,1,1,1,1]
+  	];
+
+  	function setUpGame() {
+  		for(var k = 0; k < gameMap.length; k++){
+	 		gameMap[k] = new Array(10);
+	 		for(var g = 0; g <gameMap.length; g++){
+	 			gameMap[k][g] = {
+					isWalkable: true,
+			  		hasChest: false,
+			  		hasTree: false,
+			  		hasPlayer: false,
+			  		isVisible: true
+				};
+	 		}
+	  	};
+
+  		for(var i=0; i<gameMap.length; i++){
+			for(var j=0; j<gameMap.length; j++){
+
+				if(demoMap[i][j] == 1){
+					gameMap[i][j].hasTree = true;
+					gameMap[i][j].isWalkable = false;
+					gameMap[i][j].hasPlayer = false;
+					gameMap[i][j].hasChest = false;
+				}
+				else if(demoMap[i][j] == 2){
+					gameMap[i][j].hasPlayer = true;
+					gameMap[i][j].isWalkable = true;
+					gameMap[i][j].hasTree = false;
+					gameMap[i][j].hasChest = false;
+				}
+				else if(demoMap[i][j] == 3){
+					gameMap[i][j].hasChest = true;
+					gameMap[i][j].isWalkable = false;
+					gameMap[i][j].hasTree = false;
+					gameMap[i][j].hasPlayer = false;
+				}
+				else{
+					gameMap[i][j].isWalkable = true;
+					gameMap[i][j].hasPlayer = false;
+					gameMap[i][j].hasChest = false;
+					gameMap[i][j].hasTree = false;
+				};
+				console.log(gameMap[i][j].hasTree);
+			};
+		};
+  	};
+
+  	function test() {
+  		console.log(gameMap);
+  	}
+
+	function drawGame(){
+		var drawX = 0;
+		var drawY = 0;
+		for(var i=0; i<gameMap.length; i++){
+			for(var j=0; j<gameMap.length; j++){
+				ctx.drawImage(grassImage, drawX, drawY);
+  				if(gameMap[i][j].hasPlayer == true){
+  					ctx.drawImage(heroImage, drawX, drawY);
+  				};
+  				if(gameMap[i][j].hasTree == true){
+  					ctx.drawImage(treeImage, drawX, drawY);
+  				};
+  				if(gameMap[i][j].hasChest == true){
+  					ctx.drawImage(chestImage, drawX, drawY);
+  				};
+  				drawX += 50;
+	  		}
+	  		drawY += 50;
+	  		drawX = 0;
+		}
+	};
+
+	
+	addEventListener('keypress', function(e){
+		var code = e.keyCode;
+		console.log(code);
+		update(code);
+		code = 0;
+		render();
+	},false);
+
+
+	
+
+	var update = function(code){
+		if(code == 119){
+			hero.y -= multiplier;
+		}
+		if(code == 115){
+			hero.y += multiplier;
+		}
+		if(code == 100){
+			hero.x += multiplier;
+		}if(code == 97){
+			hero.x -= multiplier;
+		}
+	}
+</script>
+</html>
+
+
+<!-- DrawCell Function - Draws all the graphics needed for each cell
+
+UserInput Function - Changes cell object values depending on what user does, then calls drawCell function
+	If input is a walking motion, calls animation function then drawCell function (or maybe passes value into drawcell function to start animation)
+
+Animation Functions - A function for each movement (Up, Down, Left Right) --Eventually have animation for trying to walk
+	but running into unwalkable area
+
+Work out Combat
+
+Define Dialogue/Text Area
+
+123
+456
+789
+
+if up - (-3)
+if down - (+3)
+if left - (-1)
+if right - (+1)
+ -->
+

@@ -24,6 +24,12 @@
   Right Arrow - 39
   Up Arrow    - 38
   Down Arrow  - 40
+
+
+  W           - 119
+  A           - 97
+  S           - 115
+  D           - 100
   Spacebar    - 32
   "Z" Key     - 90
   "X" Key     - 88
