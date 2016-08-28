@@ -5,31 +5,25 @@
   <meta charset="utf-8">
 
   <title></title>
-</head>
 
+  <style>
+  	.canvas{
+  		border-style: solid;
+  		border-width: 5px;
+  		border-color: red;
+  	}
+  </style>
+</head>
 <body>
-<canvas id="myCanvas" height="500" width="500"></canvas>
+<button onclick="main();">Click</button><br>
+<canvas class="canvas" id="myCanvas" height="500" width="500"></canvas>
+<div id="menu"></div>
 
 
 
 </body>
 <script type="text/javascript">
 
-	// var hero = {
-	// 	x: 0,
-	//     y: 0
-	// };
-
-
-
-	// var main = function(){
-	//     // drawGame();
-	//     requestAnimationFrame(main);
-	// };
-  	
- //  	main();
-
-  
 
 
 </script>
@@ -38,83 +32,115 @@
 	var canvas = document.getElementById('myCanvas');
 	var ctx = canvas.getContext('2d');
 
-	var heroReady = false;
 	var heroImage = new Image();
-	heroImage.onload = function(){
-		heroReady = true;
-	};
 	heroImage.src = "./images/dog.png";
 
-	var grassReady = false;
 	var grassImage = new Image();
-	grassImage.onload = function(){
-		grassReady = true;
-	};
 	grassImage.src = "./images/grass.gif";
 
-	var treeReady = false;
 	var treeImage = new Image();
-	treeImage.onload = function(){
-		treeReady = true;
-	};
 	treeImage.src = "./images/tree.png";
 
-	var chestReady = false;
 	var chestImage = new Image();
-	chestImage.onload = function(){
-		chestReady = true;
-	};
 	chestImage.src = "./images/chest.png";
 
-	var gameMap = new Array(10);
- 	
-  	var demoMap = [
+	var stoneImage = new Image();
+	stoneImage.src = "./images/stone.png";
+
+	var turkeyImage = new Image();
+	turkeyImage.src = "./images/turkey.png";
+
+	var mapLength;
+	var gameMap = new Array(mapLength);
+ 	var playerCell = {};
+ 	var playerObject = {};
+ 	var drawPoint = {};
+ 	var lastDirection;
+ 	var xMod;
+ 	var yMod;
+ 	var viewL = 10; //Amount of tiles displayed in Canvas Area
+  	var demoMap2 = [
+  		[1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
+  		[1,0,0,0,0,0,0,0,0,0,0,1,1,1,1,1,3,1,1,1],
+  		[1,2,0,0,0,0,0,0,0,0,0,1,1,1,0,4,4,4,0,1],
+  		[1,1,0,0,0,0,0,0,0,0,0,1,1,1,0,0,4,0,0,1],
+  		[1,1,0,0,0,0,0,0,0,0,0,1,1,1,0,0,4,0,5,1],
+  		[1,0,0,0,0,0,0,0,0,0,0,1,1,1,0,0,0,0,0,1],
+  		[1,0,1,1,0,0,0,0,0,0,0,1,1,1,0,0,0,0,0,1],
+  		[1,0,1,1,0,0,0,0,0,0,0,1,1,1,0,0,0,0,0,1],
+  		[1,0,1,1,0,0,0,4,0,0,0,1,1,1,0,0,0,0,0,1],
+  		[1,0,1,1,0,0,0,0,0,0,0,1,1,1,0,0,0,0,0,1],
+  		[1,0,1,1,0,0,0,0,0,0,0,1,1,1,0,0,0,0,0,1],
+  		[1,0,1,1,0,0,0,0,0,0,0,1,1,1,0,0,0,0,0,1],
+  		[1,4,1,1,0,0,0,0,0,0,0,1,1,1,0,0,0,0,0,1],
+  		[1,3,1,1,0,0,0,0,0,0,0,1,1,1,0,0,0,0,0,1],
+  		[1,0,1,1,0,0,0,0,0,0,0,1,1,1,0,0,0,0,0,1],
+  		[1,0,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+  		[1,0,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+  		[1,0,1,1,1,1,0,0,0,0,0,0,4,0,0,0,0,0,0,1],
+  		[1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+  		[1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1]
+  	];
+
+  	var demoMap1 = [
   		[1,1,1,1,1,1,1,1,1,1],
-  		[1,0,0,0,0,0,0,0,0,1],
-  		[1,0,0,0,0,0,0,0,0,1],
+  		[1,0,0,3,0,0,0,0,0,1],
+  		[1,0,0,0,0,0,0,2,0,1],
   		[1,1,0,0,0,0,0,0,0,1],
-  		[1,1,0,0,0,2,0,0,0,1],
-  		[1,0,0,0,0,0,0,0,0,1],
+  		[1,1,0,0,0,0,0,0,0,1],
+  		[1,0,0,0,0,0,0,0,5,1],
   		[1,0,1,1,0,0,0,0,0,1],
   		[1,0,1,1,0,0,0,0,0,1],
-  		[1,3,1,1,0,0,0,0,3,1],
+  		[1,3,1,1,0,0,0,4,0,1],
   		[1,1,1,1,1,1,1,1,1,1]
   	];
 
-  	function setUpGame() {
-  		for(var k = 0; k < gameMap.length; k++){
-	 		gameMap[k] = new Array(10);
-	 		for(var g = 0; g <gameMap.length; g++){
+  	function setUpGame(aMap) {
+  		mapLength = aMap.length;
+  		playerObject = {
+  			chestTotal: 0,
+  			chestAmt: 0,
+  			hasBite: false
+  		};
+  		for(var k=0; k<mapLength; k++){
+	 		gameMap[k] = new Array(mapLength);
+	 		for(var g=0; g<mapLength; g++){
 	 			gameMap[k][g] = {
 					isWalkable: true,
 			  		hasChest: false,
 			  		hasTree: false,
 			  		hasPlayer: false,
+			  		hasStone: false,
+			  		hasTurkey: false,
 			  		isVisible: true
 				};
 	 		}
 	  	};
 
-  		for(var i=0; i<gameMap.length; i++){
-			for(var j=0; j<gameMap.length; j++){
-
-				if(demoMap[i][j] == 1){
+  		for(var i=0; i<mapLength; i++){
+			for(var j=0; j<mapLength; j++){
+				if(aMap[i][j] == 1){
 					gameMap[i][j].hasTree = true;
 					gameMap[i][j].isWalkable = false;
-					gameMap[i][j].hasPlayer = false;
-					gameMap[i][j].hasChest = false;
 				}
-				else if(demoMap[i][j] == 2){
+				else if(aMap[i][j] == 2){
 					gameMap[i][j].hasPlayer = true;
-					gameMap[i][j].isWalkable = true;
-					gameMap[i][j].hasTree = false;
-					gameMap[i][j].hasChest = false;
+					playerCell.x = i;
+					playerCell.y = j;
 				}
-				else if(demoMap[i][j] == 3){
+				else if(aMap[i][j] == 3){
 					gameMap[i][j].hasChest = true;
 					gameMap[i][j].isWalkable = false;
-					gameMap[i][j].hasTree = false;
-					gameMap[i][j].hasPlayer = false;
+					playerObject.chestTotal++;
+					playerObject.chestAmt++;
+				}
+				else if(aMap[i][j] == 4){
+					gameMap[i][j].hasStone = true;
+					gameMap[i][j].isWalkable = false;
+				}
+				else if(aMap[i][j] == 5){
+					gameMap[i][j].hasTurkey = true;
+					gameMap[i][j].isWalkable = false;
 				}
 				else{
 					gameMap[i][j].isWalkable = true;
@@ -122,61 +148,277 @@
 					gameMap[i][j].hasChest = false;
 					gameMap[i][j].hasTree = false;
 				};
-				console.log(gameMap[i][j].hasTree);
 			};
 		};
   	};
 
-  	function test() {
-  		console.log(gameMap);
-  	}
 
 	function drawGame(){
-		var drawX = 0;
-		var drawY = 0;
-		for(var i=0; i<gameMap.length; i++){
-			for(var j=0; j<gameMap.length; j++){
-				ctx.drawImage(grassImage, drawX, drawY);
-  				if(gameMap[i][j].hasPlayer == true){
-  					ctx.drawImage(heroImage, drawX, drawY);
-  				};
-  				if(gameMap[i][j].hasTree == true){
-  					ctx.drawImage(treeImage, drawX, drawY);
-  				};
-  				if(gameMap[i][j].hasChest == true){
-  					ctx.drawImage(chestImage, drawX, drawY);
-  				};
-  				drawX += 50;
-	  		}
-	  		drawY += 50;
-	  		drawX = 0;
+		findDraw();
+		ctx.clearRect(0,0,canvas.height,canvas.width);
+		drawPoint.x = 0;
+		drawPoint.y = 0;
+
+
+		for(var i=(xMod-(viewL/2)); i<(xMod+(viewL/2)); i++){
+			for(var j=(yMod-(viewL/2)); j<(yMod+(viewL/2)); j++){
+				var g = gameMap[i][j];
+				ctx.drawImage(grassImage, drawPoint.x, drawPoint.y);
+				if(g.hasPlayer){
+					ctx.drawImage(heroImage, drawPoint.x, drawPoint.y);
+				}
+				if(g.hasChest){
+					ctx.drawImage(chestImage, drawPoint.x, drawPoint.y);
+				}
+				if(g.hasTree){
+					ctx.drawImage(treeImage, drawPoint.x, drawPoint.y);
+				}
+				if(g.hasStone){
+					ctx.drawImage(stoneImage, drawPoint.x, drawPoint.y);
+				}
+				if(g.hasTurkey){
+					ctx.drawImage(turkeyImage, drawPoint.x, drawPoint.y);
+				}
+				drawPoint.x += 50;
+			}
+			drawPoint.y += 50;
+			drawPoint.x = 0;
 		}
+
+		// for(var i=0; i<10; i++){
+		// 	for(var j=0; j<10; j++){
+		// 		var g = gameMap[i][j];
+		// 		ctx.drawImage(grassImage, drawPoint.x, drawPoint.y);
+		// 		if(g.hasPlayer){
+		// 			ctx.drawImage(heroImage, drawPoint.x, drawPoint.y);
+		// 		}
+		// 		if(g.hasChest){
+		// 			ctx.drawImage(chestImage, drawPoint.x, drawPoint.y);
+		// 		}
+		// 		if(g.hasTree){
+		// 			ctx.drawImage(treeImage, drawPoint.x, drawPoint.y);
+		// 		}
+		// 		if(g.hasStone){
+		// 			ctx.drawImage(stoneImage, drawPoint.x, drawPoint.y);
+		// 		}
+		// 		if(g.hasTurkey){
+		// 			ctx.drawImage(turkeyImage, drawPoint.x, drawPoint.y);
+		// 		}
+		// 		drawPoint.x += 50;
+		// 	}
+		// 	drawPoint.y += 50;
+		// 	drawPoint.x = 0;
+		// }
+
+		// for(var i=(yMod-5); i<(yMod+5); i++){
+		// 	for(var j=(xMod-5); j<(xMod-5); j++){
+		// 		ctx.drawImage(grassImage, drawPoint.x, drawPoint.y);
+  // 				if(gameMap[i][j].hasPlayer == true){
+  // 					ctx.drawImage(heroImage, drawPoint.x, drawPoint.y);
+  // 				};
+  // 				if(gameMap[i][j].hasTree == true){
+  // 					ctx.drawImage(treeImage, drawPoint.x, drawPoint.y);
+  // 				};
+  // 				if(gameMap[i][j].hasChest == true){
+  // 					ctx.drawImage(chestImage, drawPoint.x, drawPoint.y);
+  // 				};
+  // 				if(gameMap[i][j].hasStone == true){
+  // 					ctx.drawImage(stoneImage, drawPoint.x, drawPoint.y);
+  // 				};
+  // 				if(gameMap[i][j].hasTurkey == true){
+  // 					ctx.drawImage(turkeyImage, drawPoint.x, drawPoint.y);
+  // 				};
+  // 				drawPoint.x += 50;
+	 //  		}
+	 //  		drawPoint.y += 50;
+	 //  		drawPoint.x = 0;
+		// }
 	};
 
-	
+	function findDraw() {
+		yMod = 0;
+		xMod = 0;
+		var bCorner = gameMap.length/4;
+		var tCorner = bCorner*3;
+		if(playerCell.x < bCorner){
+			xMod = bCorner - playerCell.x;
+		}
+		if(playerCell.x > tCorner){
+			xMod = tCorner - playerCell.x;
+		}
+		if(playerCell.y < bCorner){
+			yMod = bCorner - playerCell.y;
+		}
+		if(playerCell.y > tCorner){
+			yMod = tCorner - playerCell.y;
+		}
+		yMod += playerCell.y;
+		xMod += playerCell.x;
+	}
+
 	addEventListener('keypress', function(e){
 		var code = e.keyCode;
 		console.log(code);
 		update(code);
 		code = 0;
-		render();
+		drawGame();
+		
 	},false);
 
-
-	
-
 	var update = function(code){
+		//The W key
 		if(code == 119){
-			hero.y -= multiplier;
+			if(gameMap[playerCell.x-1][playerCell.y].isWalkable==true){
+				gameMap[playerCell.x][playerCell.y].hasPlayer = false;
+				playerCell.x -= 1;
+				gameMap[playerCell.x][playerCell.y].hasPlayer = true;
+			}
+			lastDirection = "w";
 		}
+		//The A key
+		if(code == 97){
+			if(gameMap[playerCell.x][playerCell.y-1].isWalkable==true){
+				gameMap[playerCell.x][playerCell.y].hasPlayer = false;
+				playerCell.y -= 1;
+				gameMap[playerCell.x][playerCell.y].hasPlayer = true;
+			}
+			lastDirection = "a";
+		}
+		//The S key
 		if(code == 115){
-			hero.y += multiplier;
+			if(gameMap[playerCell.x+1][playerCell.y].isWalkable==true){
+				gameMap[playerCell.x][playerCell.y].hasPlayer = false;
+				playerCell.x += 1;
+				gameMap[playerCell.x][playerCell.y].hasPlayer = true;
+			}
+			lastDirection = "s";
 		}
+		//The D key
 		if(code == 100){
-			hero.x += multiplier;
-		}if(code == 97){
-			hero.x -= multiplier;
+			if(gameMap[playerCell.x][playerCell.y+1].isWalkable==true){
+				gameMap[playerCell.x][playerCell.y].hasPlayer = false;
+				playerCell.y += 1;
+				gameMap[playerCell.x][playerCell.y].hasPlayer = true;
+			}
+			lastDirection = "d";
 		}
+		//The L key
+		if(code == 108){
+			action();
+		}
+		//The M key
+		if(code == 109){
+			if(playerObject.hasBite){
+				bite();
+			}
+		}
+	}
+
+	function action(code){
+		if(lastDirection == "w"){
+			if(gameMap[playerCell.x-1][playerCell.y].hasChest == true){
+				gameMap[playerCell.x-1][playerCell.y].hasChest = false;
+				gameMap[playerCell.x-1][playerCell.y].isWalkable = true;
+				playerObject.chestAmt --;
+				showMenu();
+			}
+		}
+		if(lastDirection == "a"){
+			if(gameMap[playerCell.x][playerCell.y-1].hasChest == true){
+				gameMap[playerCell.x][playerCell.y-1].hasChest = false;
+				gameMap[playerCell.x][playerCell.y-1].isWalkable = true;
+				playerObject.chestAmt --;
+				showMenu();
+			}
+		}
+		if(lastDirection == "s"){
+			if(gameMap[playerCell.x+1][playerCell.y].hasChest == true){
+				gameMap[playerCell.x+1][playerCell.y].hasChest = false;
+				gameMap[playerCell.x+1][playerCell.y].isWalkable = true;
+				playerObject.chestAmt --;
+				showMenu();
+			}
+		}
+		if(lastDirection == "d"){
+			if(gameMap[playerCell.x][playerCell.y+1].hasChest == true){
+				gameMap[playerCell.x][playerCell.y+1].hasChest = false;
+				gameMap[playerCell.x][playerCell.y+1].isWalkable = true;
+				playerObject.chestAmt --;
+				showMenu();
+			}
+		}
+	}
+
+	function bite(code) {
+		if(lastDirection == "w"){
+			if(gameMap[playerCell.x-1][playerCell.y].hasStone == true){
+				gameMap[playerCell.x-1][playerCell.y].hasStone = false;
+				gameMap[playerCell.x-1][playerCell.y].isWalkable = true;
+				showMenu();
+			}
+		}
+		if(lastDirection == "a"){
+			if(gameMap[playerCell.x][playerCell.y-1].hasStone == true){
+				gameMap[playerCell.x][playerCell.y-1].hasStone = false;
+				gameMap[playerCell.x][playerCell.y-1].isWalkable = true;
+				showMenu();
+			}
+		}
+		if(lastDirection == "s"){
+			if(gameMap[playerCell.x+1][playerCell.y].hasStone == true){
+				gameMap[playerCell.x+1][playerCell.y].hasStone = false;
+				gameMap[playerCell.x+1][playerCell.y].isWalkable = true;
+				showMenu();
+			}
+		}
+		if(lastDirection == "d"){
+			if(gameMap[playerCell.x][playerCell.y+1].hasStone == true){
+				gameMap[playerCell.x][playerCell.y+1].hasStone = false;
+				gameMap[playerCell.x][playerCell.y+1].isWalkable = true;
+				showMenu();
+			}
+		}
+	}
+
+	function getBite(code){
+		if(playerObject.chestAmt == (playerObject.chestTotal-1)){
+			playerObject.hasBite = true;
+		}
+	}
+
+	function main() {
+		setUpGame(demoMap2);
+		drawGame();
+		showMenu();
+	}
+
+	function showPic() {
+		var p = playerObject.chestAmt;
+		if(p = 6){
+			
+		}
+		if(p = 5){
+
+		}
+		if(p = 4){
+
+		}
+		if(p = 3){
+
+		}
+		if(p = 2){
+			
+		}
+		if(p = 1){
+
+		}
+		
+	}
+
+	function showMenu() {
+		getBite();
+		var html = "<p>Chests left: " + playerObject.chestAmt + "</p>";
+		document.getElementById('menu').innerHTML = html;
 	}
 </script>
 </html>
@@ -194,13 +436,5 @@ Work out Combat
 
 Define Dialogue/Text Area
 
-123
-456
-789
-
-if up - (-3)
-if down - (+3)
-if left - (-1)
-if right - (+1)
  -->
 
