@@ -5,12 +5,127 @@
   <meta charset="utf-8">
 
   <title></title>
-
-  <link rel="stylesheet" href="css/styles.css?v=1.0">
 </head>
 
 <body>
+<canvas id="ctx" width="500" height="500" style="border: 1px solid #000000;"></canvas>
 
 
 </body>
+
+<script>
+	var ctx = document.getElementById('ctx').getContext('2d');
+	ctx.font = '30px Arial';
+
+	var HEIGHT = 500;
+	var WIDTH = 500;
+	var timeWhenGameStarted = Date.now();
+
+	var player = {
+		x: 50,
+		spdX: 30,
+		y: 40,
+		spdY: 5,
+		name: "P",
+		hp: 10,
+	}
+
+	var enemyList = {};
+
+	Enemy = function(x, spdX, y, spdY, id){
+		var enemy = {
+			x: x,
+			spdX: spdX,
+			y: y,
+			spdY: spdY,
+			name: 'E',
+			id: id
+		};
+		enemyList[id] = enemy;
+	}
+
+
+
+	getDistanceBetweenEntity = function(entity1, entity2){
+		var vx = entity1.x - entity2.x;
+		var vy = entity1.y - entity2.y;
+
+		return Math.sqrt(vx*vx+vy*vy);
+	}
+
+	textCollisionEntity = function(entity1,entity2) {
+		var distance = getDistanceBetweenEntity(entity1,entity2);
+		return distance < 30;
+	}
+
+	document.onmousemove = function(mouse){
+		var mouseX = mouse.clientX;
+		var mouseY = mouse.clientY;
+
+		player.x = mouseX;
+		player.y = mouseY;
+	}
+
+	update = function(){
+		ctx.clearRect(0,0,HEIGHT,WIDTH);
+		
+		for(var key in enemyList){
+			updateEntity(enemyList[key]);
+
+			var isColliding = textCollisionEntity(player, enemyList[key]);
+			if(isColliding){
+				player.hp -= 1;
+				if(player.hp<=0){
+					var timeSurvived = Date.now() - timeWhenGameStarted;
+					console.log("You Lost. You survived for " + timeSurvived + "ms.");
+					player.hp = 10;
+				}
+			}
+		}
+
+		drawPlayer(player);
+		ctx.fillText("HP: " + player.hp,0,30)
+	}
+
+
+	updateEntity = function(something){
+		updateEntityPosition(something);
+		drawEnemy(something);
+	}
+
+
+	updateEntityPosition = function(something){
+		something.x += something.spdX;
+		something.y += something.spdY;
+		
+
+		if(something.x>WIDTH || something.x<0){
+			something.spdX = -something.spdX;
+		}
+		if(something.y<0 || something.y>HEIGHT){
+			something.spdY = -something.spdY;
+		}
+	}
+
+
+	drawPlayer = function(something){
+		ctx.save();
+		ctx.fillStyle = "green";
+		ctx.fillRect(something.x-10, something.y-10, 20,20);
+		ctx.restore();
+	}
+
+	drawEnemy = function(something){
+		ctx.save();
+		ctx.fillStyle = "red";
+		ctx.fillRect(something.x-15, something.y-15,30,30);
+		ctx.restore();
+	}
+
+	Enemy(150, 10, 350, 15, 'E1');
+	Enemy(250, 10, 350, -15, 'E2');
+	Enemy(250, 10, 150, -8, 'E3');
+
+	setInterval(update, 40);
+</script>
 </html>

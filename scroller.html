@@ -1,98 +1,263 @@
-<!DOCTYPE html>
-<html>
-<head>
-</head>
-  <body>
-  <canvas id="myCanvas" height="500" width="500"></canvas>
+<!doctype html>
 
-  </body>
-  <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
-  <script>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+
+  <title></title>
+
+</head>
+<style>
+  #myCanvas{
+    border-style: solid;
+    border-width: 2px;
+    border-color: black;
+  }
+</style>
+
+<body>
+<canvas id="myCanvas" height="600" width="1200"></canvas>
+<button onclick="draw();">HERE</button>
+
+
+</body>
+<script>
   var canvas = document.getElementById('myCanvas');
   var ctx = canvas.getContext('2d');
+  ctx.font="50px Georgia";
+  ctx.textAlign="center";
 
-  var backgroundImage = new Image();
-  backgroundImage.src = "./images/grass.gif";
 
-  var heroImage = new Image();
-  heroImage.src = "./images/dog.png";
+//IMAGES
+  var hero = new Image();
+  hero.src = "./images/hero.png";
 
-  var hero = {
-    x: 0,
-    y: 0
+  var coke = new Image();
+  coke.src = "./images/turkey.png";
+
+  var blank = new Image();
+  blank.src = "./images/blank.png";
+
+  var HEIGHT_CAN = canvas.height-50;
+  var HEIGHT_PLAYER = canvas.height-128;
+  var WIDTH_PLAYER = canvas.width-128;
+
+//MODELS
+  var board = {
+    levelOn: true,
+    difficulty: 1000,
+    canCount: 0,
+    playing: true,
   };
 
-  var keysDown = {};
-  addEventListener("keydown", function(e){
-    keysDown[e.keyCode] = true;
-  }, false);
-
-  addEventListener("keyup", function(e){
-    delete keysDown[e.keyCode];
-  },false);
-
-
-  var reset = function(){
-    hero.x = canvas.width/2;
-    hero.y = canvas.height/2;
+  var player = {
+    x: 10,
+    y: 236,
+    speed: 20,
+    canShoot: false,
+    img: hero,
+    height: 128,
+    width: 128,
+    cokesDrank: 0,
+    tooMuchCoke: false,
   };
 
+  var canList = {};
+  var lastCanCreated = Date.now();
 
-  var update = function(modifier){
-    if(38 in keysDown){
-      hero.y --;
-    }
-    if(40 in keysDown){
-      hero.y ++;
-    }
-    if(37 in keysDown){
-      hero.x --;
-    }
-    if(39 in keysDown){
-      hero.x ++;
-    }
-    if(32 in keysDown){
-      reset();
-    }
+
+  function reset(){
+    lastCanCreated = Date.now();
+    canList = {};
+    board.playing = true;
+    board.canCount = 0;
+    player.cokesDrank = 0;
+    player.tooMuchCoke = false;
+    player.canShoot = false;
+    player.x = 10;
+    player.y = 300;
+    player.speed = 20;
+    console.log("reset");
+
   };
 
+  function Can(x, spdX, y, id, image, height, width){
+    var can = {
+      x: x,
+      spdX: spdX,
+      y: y,
+      name: 'C',
+      id: id,
+      img: image,
+      height: height,
+      width: width,
+    };
+    canList[id] = can;
+  }
 
 
-  var render = function(){
-    var drawX = 0;
-    var drawY = 0;
+// CREATING
+  function createCan(){
+    var time = Date.now();
+    if(time - lastCanCreated > board.difficulty){
+      var num = Math.floor((Math.random() * HEIGHT_CAN) + 1);
+      Can(1100, 10, num, board.canCount, coke, coke.height, coke.width);
+      board.canCount ++;
+      lastCanCreated = Date.now(); 
+    }  
+  };
 
-    for(var i = 0; i<10; i++){
-      for(var j = 0; j<10; j++){
-        ctx.drawImage(backgroundImage, drawX, drawY);
-        drawX+=50;
+// DRAWING
+  function drawPlayer(){
+    boundary();
+    ctx.drawImage(player.img, player.x, player.y)
+  }
+
+  function drawCan(thing){
+    ctx.drawImage(thing.img, thing.x, thing.y)
+  }
+
+
+// UPDATING
+  function updateCan(thing){
+    thing.x -= thing.spdX;
+    drawCan(thing);
+  }
+
+  function update(){
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+
+    win();
+
+    createCan();
+    drawPlayer();
+    for(var key in canList){
+      updateCan(canList[key]);
+
+      var isColliding = testCollisionRect(player, canList[key]);
+      if(isColliding){
+        console.log("HIT");
+        delete canList[key];
+        player.cokesDrank++;
       }
-      drawY += 50;
-      drawX = 0;
+      
     }
-    ctx.drawImage(heroImage, hero.x, hero.y);
+    if(player.cokesDrank == 1){
+      player.speed = 40;
+    }
+    if(player.cokesDrank == 2){
+      player.speed = 80;
+    }
+    if(player.cokesDrank == 3){
+      player.tooMuchCoke = true;
+    }
+    if(player.cokesDrank == 4){
+      ctx.fillText("You Lose!", canvas.width/2, canvas.height/2);
+      ctx.fillText("Push 'y' to play again", canvas.width/2, canvas.height/2 - 50);
+      board.playing = false;
+    }
+  }
+
+
+  function boundary() {
+    if(player.x < 0){
+      player.x = 0;
+    }
+    if(player.x > WIDTH_PLAYER){
+      player.x = WIDTH_PLAYER;
+    }
+    if(player.y < 0){
+      player.y = 0;
+    }
+    if(player.y > HEIGHT_PLAYER){
+      player.y = HEIGHT_PLAYER;
+    }
+  }
+
+  function win(){
+    if(player.x >= WIDTH_PLAYER){
+      ctx.fillText("You Win!", canvas.width/2, canvas.height/2);
+      board.levelOn=false;
+    }
+  }
+
+  if(board.playing){
+    addEventListener('keypress',function(e){
+      var code = e.keyCode;
+      console.log(code);
+      if(code == 121){
+        reset();
+      }
+
+      if(player.tooMuchCoke){
+        if(code == 115){
+        player.y -= player.speed;
+        }
+        if(code == 100){
+          player.x -= player.speed;
+        }
+        if(code == 119){
+          player.y += player.speed;
+        }
+        if(code == 97){
+          player.x += player.speed;
+        }
+      }
+      else{
+        if(code == 119){
+        player.y -= player.speed;
+        }
+        if(code == 97){
+          player.x -= player.speed;
+        }
+        if(code == 115){
+          player.y += player.speed;
+        }
+        if(code == 100){
+          player.x += player.speed;
+        }
+      }
+    });
   };
 
 
-  var main = function(){
-    var now = Date.now();
-    var delta = now - then;
-    update(delta/1000);
-    render();
+// COLLISION
+  // getDistanceBetweenEntity = function(entity1, entity2){
+  //   var vx = entity1.x - entity2.x;
+  //   var vy = entity1.y - entity2.y;
 
-    then = now;
+  //   return Math.sqrt(vx*vx+vy*vy);
+  // }
 
-    requestAnimationFrame(main);
-  };
+  // testCollisionEntity = function(entity1,entity2) {
+  //   var rect1 = {
+  //     x: entity1.x,
+  //     y: entity1.y,
+  //     width: entity1.width,
+  //     height: entity1.height
+  //   };
+  //   var rect2 = {
+  //     x: entity2.x,
+  //     y: entity2.y,
+  //     width: entity2.width,
+  //     height: entity2.height
+  //   };
 
-    var w = window;
-  requestAnimationFrame = w.requestAnimationFrame || w.webkitRequestAnimationFrame || w.msRequestAnimationFrame || w.mozRequestAnimationFrame;
+  //   return testCollisionRect(rect1, rect2);
+  // }
+
+  testCollisionRect = function(rect1,rect2) {
+    return rect1.x <= rect2.x + rect2.width
+        && rect2.x <= rect1.x + rect1.width-40
+        && rect1.y <= rect2.y + rect2.height
+        && rect2.y <= rect1.y + rect1.height-40;
+  }
 
 
-  var then = Date.now();
-  reset();
-  main();
-  </script>
+// GAMELOOP
+  if(board.levelOn == true){
+    setInterval(update, 40);
+  }
+
+</script>
 </html>
-
-
